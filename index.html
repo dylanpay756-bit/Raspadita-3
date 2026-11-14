@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#13090d">
+<title>RED DIAMOND | Raspadita</title>
+<style>
+:root{--red:#e51d3b;--gold:#f5c96a;--dark:#13090d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;color:#fff;background:radial-gradient(circle at 50% 10%,#571326 0,#241019 38%,#090609 100%);display:flex;align-items:center;justify-content:center;padding:22px}
+.wrap{width:min(100%,440px);text-align:center}
+.logo{font-weight:900;letter-spacing:4px;font-size:clamp(28px,8vw,42px);color:var(--gold);text-shadow:0 2px 0 #8c4d14,0 0 22px #ff294d}
+.sub{margin:8px 0 24px;color:#f7dfe4;letter-spacing:2px;font-size:12px}
+.panel{padding:22px 18px 24px;border:1px solid #bd8b43;border-radius:22px;background:linear-gradient(145deg,rgba(75,20,35,.96),rgba(17,8,13,.98));box-shadow:0 18px 55px #0009,inset 0 0 24px #ffcf5720}
+h1{font-size:23px;margin:0 0 8px}
+.help{font-size:14px;color:#e8cbd1;margin:0 0 20px}
+.ticket{position:relative;overflow:hidden;border-radius:17px;border:2px solid var(--gold);background:linear-gradient(135deg,#ffe7a0,#c8892c);padding:20px 12px;min-height:190px;color:#35120f;display:flex;align-items:center;justify-content:center}
+.prize{font-weight:900;font-size:clamp(28px,8vw,42px);text-shadow:0 1px #fff8}
+.prize small{display:block;font-size:13px;letter-spacing:2px;margin-top:8px}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.actions{display:flex;gap:10px;margin-top:18px}
+button{flex:1;border:0;border-radius:12px;padding:14px 10px;font-size:14px;font-weight:800;cursor:pointer}
+#reset{background:#f3c66b;color:#32130e}
+#rules{background:#ffffff16;color:#fff;border:1px solid #ffffff35}
+.note{font-size:11px;color:#cbb4ba;line-height:1.5;margin:18px 3px 0}
+.footer{font-size:11px;color:#987b83;margin-top:18px;letter-spacing:2px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="logo">◆ RED DIAMOND ◆</div>
+  <div class="sub">LA SUERTE ESTÁ DE TU LADO</div>
+  <section class="panel">
+    <h1>RASPADITA</h1>
+    <p class="help">Deslizá el dedo sobre la tarjeta para descubrir tu premio.</p>
+    <div class="ticket" id="ticket">
+      <div class="prize" id="prize">¡A RASPAR!<small>DESCUBRÍ TU PREMIO</small></div>
+      <canvas id="cover" aria-label="Raspá aquí para descubrir el premio"></canvas>
+    </div>
+    <div class="actions">
+      <button id="reset">OTRA RASPADITA</button>
+      <button id="rules">¿CÓMO JUGAR?</button>
+    </div>
+    <p class="note">Promoción de entretenimiento. Los premios y probabilidades deben ser definidos y controlados por el administrador antes de usarla con clientes.</p>
+  </section>
+  <div class="footer">RED DIAMOND • JUGÁ CON RESPONSABILIDAD</div>
+</main>
+<script>
+const canvas=document.getElementById('cover'),ctx=canvas.getContext('2d');
+const prizeEl=document.getElementById('prize');
+const prizes=['10% EXTRA','20% EXTRA','30% EXTRA','10.000 FICHAS','¡SEGUÍ INTENTANDO!'];
+let drawing=false,revealed=false;
+function choosePrize(){return prizes[Math.floor(Math.random()*prizes.length)]}
+function setup(){
+  const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,Math.round(rect.width*dpr));canvas.height=Math.max(1,Math.round(rect.height*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const g=ctx.createLinearGradient(0,0,rect.width,rect.height);
+  g.addColorStop(0,'#29232a');g.addColorStop(.5,'#777078');g.addColorStop(1,'#30262d');
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle=g;ctx.fillRect(0,0,rect.width,rect.height);
+  ctx.fillStyle='#f7d98b';ctx.textAlign='center';ctx.font='900 22px Arial';ctx.fillText('RED DIAMOND',rect.width/2,rect.height/2-4);
+  ctx.font='bold 12px Arial';ctx.fillText('RASPA PARA DESCUBRIR',rect.width/2,rect.height/2+22);
+  ctx.globalCompositeOperation='destination-out';revealed=false;
+}
+function pos(e){const r=canvas.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left,y:p.clientY-r.top}}
+function scratch(e){
+  if(!drawing)return;e.preventDefault();const p=pos(e);
+  ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,19,0,Math.PI*2);ctx.fill();
+  if(!revealed){revealed=true;setTimeout(()=>{canvas.style.opacity='.0';},250)}
+}
+function start(e){drawing=true;scratch(e)}
+function stop(){drawing=false}
+function newCard(){canvas.style.opacity='1';prizeEl.innerHTML=choosePrize()+'<small>PREMIO DE ESTA TARJETA</small>';setup()}
+canvas.addEventListener('pointerdown',start);canvas.addEventListener('pointermove',scratch);
+window.addEventListener('pointerup',stop);canvas.addEventListener('pointerleave',stop);
+document.getElementById('reset').addEventListener('click',newCard);
+document.getElementById('rules').addEventListener('click',()=>alert('Raspá la tarjeta con el dedo para descubrir el resultado. Esta versión es una demostración: el resultado se genera en el navegador y no valida premios ni cargas reales.'));
+window.addEventListener('resize',setup);newCard();
+</script>
+</body>
+</html>
